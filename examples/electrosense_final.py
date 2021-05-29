@@ -1,12 +1,16 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-##################################################
+
+#
+# SPDX-License-Identifier: GPL-3.0
+#
 # GNU Radio Python Flow Graph
 # Title: Electosense
 # Author: Sreeraj Rajendran
 # Description: Electrosense sensor code
-# Generated: Tue Mar  7 11:29:17 2017
-##################################################
+# GNU Radio version: 3.8.2.0
+
+from distutils.version import StrictVersion
 
 if __name__ == '__main__':
     import ctypes
@@ -16,26 +20,28 @@ if __name__ == '__main__':
             x11 = ctypes.cdll.LoadLibrary('libX11.so')
             x11.XInitThreads()
         except:
-            print "Warning: failed to XInitThreads()"
+            print("Warning: failed to XInitThreads()")
 
-from PyQt4 import Qt
 from gnuradio import blocks
-from gnuradio import eng_notation
 from gnuradio import fft
+from gnuradio.fft import window
 from gnuradio import filter
 from gnuradio import gr
-from gnuradio import uhd
-from gnuradio.eng_option import eng_option
-from gnuradio.fft import window
 from gnuradio.filter import firdes
-from optparse import OptionParser
+import sys
+import signal
+from PyQt5 import Qt
+from argparse import ArgumentParser
+from gnuradio.eng_arg import eng_float, intx
+from gnuradio import eng_notation
+from gnuradio import uhd
+import time
 import electrosense
 import pmt
 import scanning  # embedded python module
-import sys
 import threading
-import time
 
+from gnuradio import qtgui
 
 class electrosense_final(gr.top_block, Qt.QWidget):
 
@@ -43,6 +49,7 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         gr.top_block.__init__(self, "Electosense")
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Electosense")
+        qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
         except:
@@ -60,7 +67,14 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         self.top_layout.addLayout(self.top_grid_layout)
 
         self.settings = Qt.QSettings("GNU Radio", "electrosense_final")
-        self.restoreGeometry(self.settings.value("geometry").toByteArray())
+
+        try:
+            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
+                self.restoreGeometry(self.settings.value("geometry").toByteArray())
+            else:
+                self.restoreGeometry(self.settings.value("geometry"))
+        except:
+            pass
 
         ##################################################
         # Parameters
@@ -88,20 +102,22 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         ##################################################
         self.vecprobe = blocks.probe_signal_vf(fft_size)
         self.uhd_usrp_source_0 = uhd.usrp_source(
-        	",".join(("addr=192.168.10.2", "")),
-        	uhd.stream_args(
-        		cpu_format="fc32",
-        		channels=range(1),
-        	),
+            ",".join(('addr=192.168.10.2', "")),
+            uhd.stream_args(
+                cpu_format="fc32",
+                args='',
+                channels=list(range(0,1)),
+            ),
         )
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
         self.uhd_usrp_source_0.set_center_freq(cfreq, 0)
         self.uhd_usrp_source_0.set_gain(35, 0)
-        self.uhd_usrp_source_0.set_antenna("RX2", 0)
+        self.uhd_usrp_source_0.set_antenna('RX2', 0)
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec())
         self.single_pole_iir_filter_xx_0 = filter.single_pole_iir_filter_ff(alpha, fft_size)
-        
         def _prober_probe():
             while True:
+
                 val = self.vecprobe.level()
                 try:
                     self.set_prober(val)
@@ -111,29 +127,32 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         _prober_thread = threading.Thread(target=_prober_probe)
         _prober_thread.daemon = True
         _prober_thread.start()
-            
-        self.fft_vxx_0 = fft.fft_vcc(fft_size, True, (window.blackmanharris(fft_size)), True, 1)
-        self.electrosense_sensor_sink_0 = electrosense.sensor_sink("collector.electrosense.org", 5000, fft_size,
-                         "float32", "/home/rsreeraj/gnu_work/gr-electrosense/python/rtl-spec.avsc", "/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-SK.pem", "/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-Cert.pem", sensorid, 0, 
+
+        self.fft_vxx_0 = fft.fft_vcc(fft_size, True, window.blackmanharris(fft_size), True, 1)
+        self.electrosense_sensor_sink_0 = electrosense.sensor_sink('collector.electrosense.org', 5000, fft_size,
+                         "float32", '/home/rsreeraj/gnu_work/gr-electrosense/python/rtl-spec.avsc', '/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-SK.pem', '/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-Cert.pem', sensorid, 0,
                          2, fft_size, int(3/alpha),
-                         0.1, int(samp_rate/fft_size), 
+                         0.1, int(samp_rate/fft_size),
                          int(cfreq), rfgain)
         self.electrosense_discard_samples_0 = electrosense.discard_samples(int(tune_delay * samp_rate), int(cfreq), pmt.intern("burst_len"), False)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_float*fft_size, navg_vectors)
         self.blocks_complex_to_mag_squared_0 = blocks.complex_to_mag_squared(fft_size)
 
+
+
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.single_pole_iir_filter_xx_0, 0))    
-        self.connect((self.blocks_keep_one_in_n_0, 0), (self.electrosense_sensor_sink_0, 0))    
-        self.connect((self.blocks_keep_one_in_n_0, 0), (self.vecprobe, 0))    
-        self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))    
-        self.connect((self.electrosense_discard_samples_0, 0), (self.blocks_stream_to_vector_0, 0))    
-        self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_0, 0))    
-        self.connect((self.single_pole_iir_filter_xx_0, 0), (self.blocks_keep_one_in_n_0, 0))    
-        self.connect((self.uhd_usrp_source_0, 0), (self.electrosense_discard_samples_0, 0))    
+        self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.single_pole_iir_filter_xx_0, 0))
+        self.connect((self.blocks_keep_one_in_n_0, 0), (self.electrosense_sensor_sink_0, 0))
+        self.connect((self.blocks_keep_one_in_n_0, 0), (self.vecprobe, 0))
+        self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
+        self.connect((self.electrosense_discard_samples_0, 0), (self.blocks_stream_to_vector_0, 0))
+        self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
+        self.connect((self.single_pole_iir_filter_xx_0, 0), (self.blocks_keep_one_in_n_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.electrosense_discard_samples_0, 0))
+
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "electrosense_final")
@@ -160,9 +179,9 @@ class electrosense_final(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_cfreq(scanning.step(self.start_f,self.end_f,self.samp_rate/1.5,self.prober,self.hop_mode,0.8,0.8))
-        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
-        self.electrosense_sensor_sink_0.set_freqresol(int(self.samp_rate/self.fft_size))
         self.electrosense_discard_samples_0.set_nsamples(int(self.tune_delay * self.samp_rate))
+        self.electrosense_sensor_sink_0.set_freqresol(int(self.samp_rate/self.fft_size))
+        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
 
     def get_prober(self):
         return self.prober
@@ -224,53 +243,66 @@ class electrosense_final(gr.top_block, Qt.QWidget):
 
     def set_cfreq(self, cfreq):
         self.cfreq = cfreq
-        self.uhd_usrp_source_0.set_center_freq(self.cfreq, 0)
-        self.electrosense_sensor_sink_0.set_freq(int(self.cfreq))
         self.electrosense_discard_samples_0.set_var(int(self.cfreq))
+        self.electrosense_sensor_sink_0.set_freq(int(self.cfreq))
+        self.uhd_usrp_source_0.set_center_freq(self.cfreq, 0)
 
     def get_alpha(self):
         return self.alpha
 
     def set_alpha(self, alpha):
         self.alpha = alpha
-        self.single_pole_iir_filter_xx_0.set_taps(self.alpha)
         self.electrosense_sensor_sink_0.set_avgfactor(int(3/self.alpha))
+        self.single_pole_iir_filter_xx_0.set_taps(self.alpha)
+
+
 
 
 def argument_parser():
     description = 'Electrosense sensor code'
-    parser = OptionParser(usage="%prog: [options]", option_class=eng_option, description=description)
-    parser.add_option(
-        "", "--end-f", dest="end_f", type="eng_float", default=eng_notation.num_to_str(2000e6),
-        help="Set End Frequency [default=%default]")
-    parser.add_option(
-        "", "--start-f", dest="start_f", type="eng_float", default=eng_notation.num_to_str(50e6),
-        help="Set Start frequency [default=%default]")
+    parser = ArgumentParser(description=description)
+    parser.add_argument(
+        "--end-f", dest="end_f", type=eng_float, default="2.0G",
+        help="Set End Frequency [default=%(default)r]")
+    parser.add_argument(
+        "--start-f", dest="start_f", type=eng_float, default="50.0M",
+        help="Set Start frequency [default=%(default)r]")
     return parser
 
 
 def main(top_block_cls=electrosense_final, options=None):
     if options is None:
-        options, _ = argument_parser().parse_args()
+        options = argument_parser().parse_args()
     if gr.enable_realtime_scheduling() != gr.RT_OK:
-        print "Error: failed to enable real-time scheduling."
+        print("Error: failed to enable real-time scheduling.")
 
-    from distutils.version import StrictVersion
-    if StrictVersion(Qt.qVersion()) >= StrictVersion("4.5.0"):
+    if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
         Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
     tb = top_block_cls(end_f=options.end_f, start_f=options.start_f)
+
     tb.start()
+
     tb.show()
+
+    def sig_handler(sig=None, frame=None):
+        Qt.QApplication.quit()
+
+    signal.signal(signal.SIGINT, sig_handler)
+    signal.signal(signal.SIGTERM, sig_handler)
+
+    timer = Qt.QTimer()
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
 
     def quitting():
         tb.stop()
         tb.wait()
-    qapp.connect(qapp, Qt.SIGNAL("aboutToQuit()"), quitting)
-    qapp.exec_()
 
+    qapp.aboutToQuit.connect(quitting)
+    qapp.exec_()
 
 if __name__ == '__main__':
     main()
