@@ -22,17 +22,18 @@
 This is the GNU Radio ELECTROSENSE module. Place your Python package
 description here (python/__init__.py).
 '''
+from __future__ import unicode_literals
 
 # import swig generated symbols into the electrosense namespace
 try:
-	# this might fail if the module is python-only
-	from electrosense_swig import *
+    # this might fail if the module is python-only
+    from .electrosense_swig import *
 except ImportError:
-	pass
+    pass
 
 # import any pure python here
-from sensor_sink import sensor_sink
-from mqtt_client import mqtt_client
-from variable_updater import variable_updater
+from .sensor_sink import sensor_sink
+from .mqtt_client import mqtt_client
+from .variable_updater import variable_updater
 
 #

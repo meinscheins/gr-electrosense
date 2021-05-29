@@ -22,9 +22,9 @@ FIND_LIBRARY(
           /usr/local/lib64
           /usr/lib
           /usr/lib64
-)
+          )
 
-#include("${CMAKE_CURRENT_LIST_DIR}/electrosense.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/electrosenseTarget.cmake")
 
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(ELECTROSENSE DEFAULT_MSG ELECTROSENSE_LIBRARIES ELECTROSENSE_INCLUDE_DIRS)
