@@ -129,11 +129,14 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         _prober_thread.start()
 
         self.fft_vxx_0 = fft.fft_vcc(fft_size, True, window.blackmanharris(fft_size), True, 1)
+        self.electrosense_variable_updater_0 = electrosense.variable_updater
+        self.electrosense_variable_updater_0.register_instance(self)
         self.electrosense_sensor_sink_0 = electrosense.sensor_sink('collector.electrosense.org', 5000, fft_size,
                          "float32", '/home/rsreeraj/gnu_work/gr-electrosense/python/rtl-spec.avsc', '/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-SK.pem', '/home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-Cert.pem', sensorid, 0,
                          2, fft_size, int(3/alpha),
                          0.1, int(samp_rate/fft_size),
                          int(cfreq), rfgain)
+        self.electrosense_mqtt_client_0 = electrosense.mqtt_client('127.0.0.1', 1883, 'electrosense', '', '', '')
         self.electrosense_discard_samples_0 = electrosense.discard_samples(int(tune_delay * samp_rate), int(cfreq), pmt.intern("burst_len"), False)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_float*fft_size, navg_vectors)
@@ -144,6 +147,7 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
+        self.msg_connect((self.electrosense_mqtt_client_0, 'out'), (self.electrosense_variable_updater_0, 'in'))
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.single_pole_iir_filter_xx_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.electrosense_sensor_sink_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.vecprobe, 0))
