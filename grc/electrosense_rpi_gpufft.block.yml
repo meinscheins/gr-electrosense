@@ -4,6 +4,15 @@ id: electrosense_rpi_gpufft
 label: RPI gpufft
 category: '[Electrosense]'
 
+templates:
+  imports: import electrosense
+  make: electrosense.rpi_gpufft(${test})
+
+#  Make one 'parameters' list entry for every parameter you want settable from the GUI.
+#     Keys include:
+#     * id (makes the value accessible as keyname, e.g. in the make entry)
+#     * label (label shown in the GUI)
+#     * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
 parameters:
 -   id: fft_size
     label: FFT Size
@@ -25,6 +34,13 @@ parameters:
     dtype: int
     default: '16'
 
+#  Make one 'inputs' list entry per input and one 'outputs' list entry per output.
+#  Keys include:
+#      * label (an identifier for the GUI)
+#      * domain (optional - stream or message. Default is stream)
+#      * dtype (e.g. int, float, complex, byte, short, xxx_vector, ...)
+#      * vlen (optional - data stream vector length. Default is 1)
+#      * optional (optional - set to 1 for optional inputs. Default is 0)
 inputs:
 -   domain: stream
     dtype: complex
