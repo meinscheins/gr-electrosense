@@ -11,7 +11,7 @@ inputs:
 templates:
     imports: import electrosense
     make: |-
-        electrosense.variable_updater
+        electrosense.variable_updater()
         self.${id}.register_instance(self)
 
 file_format: 1

@@ -14,5 +14,5 @@
 
 %include "electrosense/discard_samples.h"
 GR_SWIG_BLOCK_MAGIC2(electrosense, discard_samples);
-%include "electrosense/rpi_gpufft.h"
-GR_SWIG_BLOCK_MAGIC2(electrosense, rpi_gpufft);
+//%include "electrosense/rpi_gpufft.h"
+//GR_SWIG_BLOCK_MAGIC2(electrosense, rpi_gpufft);

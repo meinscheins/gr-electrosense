@@ -40,20 +40,25 @@ def step(start,end,incr,val,mode,wt,alpha_s):
         cur=cur+incr*random.randint(1,rval)
     #similarity scanning
     else:
-        if(fft_arr.has_key(cur)):
-            cc = crosscorr(fft_arr[cur],val)
-            delf = cc.max()
-            r = np.argmax(cc)
-            #print r, wt, delf
-            sim  = r * wt + (1-wt) * delf
-            if(sim_arr.has_key(cur)):
-                pass
+        if fft_arr:
+            if(fft_arr.has_key(cur)):
+                cc = crosscorr(fft_arr[cur],val)
+                delf = cc.max()
+                r = np.argmax(cc)
+                #print r, wt, delf
+                sim  = r * wt + (1-wt) * delf
+                if(sim_arr.has_key(cur)):
+                    pass
+                else:
+                    sim_arr[cur]=0
+                    sim_arr[cur] = alpha_s * sim + sim_arr[cur] * (1-alpha_s)
+                    new=upd_sim_arr()
+                    #print "new:",new
+                    #print "sim:",sim_arr
             else:
-                sim_arr[cur]=0
-            sim_arr[cur] = alpha_s * sim + sim_arr[cur] * (1-alpha_s)
-            new=upd_sim_arr()
-            #print "new:",new
-            #print "sim:",sim_arr
+                if(cur>0):
+                    sim_arr[cur]=0
+                    new=cur+incr
         else:
             if(cur>0):
                 sim_arr[cur]=0
@@ -65,4 +70,3 @@ def step(start,end,incr,val,mode,wt,alpha_s):
         cur = start
     #print cur
     return cur
-

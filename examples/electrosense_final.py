@@ -22,6 +22,7 @@ if __name__ == '__main__':
         except:
             print("Warning: failed to XInitThreads()")
 
+from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import fft
 from gnuradio.fft import window
@@ -34,11 +35,10 @@ from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import uhd
-import time
 import electrosense
 import pmt
 import scanning  # embedded python module
+import time
 import threading
 
 from gnuradio import qtgui
@@ -101,19 +101,6 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         # Blocks
         ##################################################
         self.vecprobe = blocks.probe_signal_vf(fft_size)
-        self.uhd_usrp_source_0 = uhd.usrp_source(
-            ",".join(('addr=192.168.10.2', "")),
-            uhd.stream_args(
-                cpu_format="fc32",
-                args='',
-                channels=list(range(0,1)),
-            ),
-        )
-        self.uhd_usrp_source_0.set_center_freq(cfreq, 0)
-        self.uhd_usrp_source_0.set_gain(35, 0)
-        self.uhd_usrp_source_0.set_antenna('RX2', 0)
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_time_unknown_pps(uhd.time_spec())
         self.single_pole_iir_filter_xx_0 = filter.single_pole_iir_filter_ff(alpha, fft_size)
         def _prober_probe():
             while True:
@@ -138,9 +125,11 @@ class electrosense_final(gr.top_block, Qt.QWidget):
                          int(cfreq), rfgain)
         self.electrosense_mqtt_client_0 = electrosense.mqtt_client('127.0.0.1', 1883, 'electrosense', '', '', '')
         self.electrosense_discard_samples_0 = electrosense.discard_samples(int(tune_delay * samp_rate), int(cfreq), pmt.intern("burst_len"), False)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_float*fft_size, navg_vectors)
         self.blocks_complex_to_mag_squared_0 = blocks.complex_to_mag_squared(fft_size)
+        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 1000, 1, 0, 0)
 
 
 
@@ -148,14 +137,15 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.msg_connect((self.electrosense_mqtt_client_0, 'out'), (self.electrosense_variable_updater_0, 'in'))
+        self.connect((self.analog_sig_source_x_0, 0), (self.blocks_throttle_0, 0))
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.single_pole_iir_filter_xx_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.electrosense_sensor_sink_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.vecprobe, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.electrosense_discard_samples_0, 0))
         self.connect((self.electrosense_discard_samples_0, 0), (self.blocks_stream_to_vector_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
         self.connect((self.single_pole_iir_filter_xx_0, 0), (self.blocks_keep_one_in_n_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.electrosense_discard_samples_0, 0))
 
 
     def closeEvent(self, event):
@@ -185,7 +175,8 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         self.set_cfreq(scanning.step(self.start_f,self.end_f,self.samp_rate/1.5,self.prober,self.hop_mode,0.8,0.8))
         self.electrosense_discard_samples_0.set_nsamples(int(self.tune_delay * self.samp_rate))
         self.electrosense_sensor_sink_0.set_freqresol(int(self.samp_rate/self.fft_size))
-        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
+        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
+        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
 
     def get_prober(self):
         return self.prober
@@ -249,7 +240,6 @@ class electrosense_final(gr.top_block, Qt.QWidget):
         self.cfreq = cfreq
         self.electrosense_discard_samples_0.set_var(int(self.cfreq))
         self.electrosense_sensor_sink_0.set_freq(int(self.cfreq))
-        self.uhd_usrp_source_0.set_center_freq(self.cfreq, 0)
 
     def get_alpha(self):
         return self.alpha

@@ -25,6 +25,7 @@ if __name__ == '__main__':
 from PyQt5 import Qt
 from gnuradio import qtgui
 import sip
+from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import fft
 from gnuradio.fft import window
@@ -37,10 +38,9 @@ from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import electrosense
-import osmosdr
-import time
 import pmt
 import scanning  # embedded python module
+import time
 import threading
 
 from gnuradio import qtgui
@@ -104,21 +104,6 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
         ##################################################
         self.vecprobe = blocks.probe_signal_vf(fft_size)
         self.single_pole_iir_filter_xx_0 = filter.single_pole_iir_filter_ff(alpha, fft_size)
-        self.rtlsdr_source_0 = osmosdr.source(
-            args="numchan=" + str(1) + " " + ''
-        )
-        self.rtlsdr_source_0.set_time_unknown_pps(osmosdr.time_spec_t())
-        self.rtlsdr_source_0.set_sample_rate(samp_rate)
-        self.rtlsdr_source_0.set_center_freq(cfreq, 0)
-        self.rtlsdr_source_0.set_freq_corr(ppm, 0)
-        self.rtlsdr_source_0.set_dc_offset_mode(2, 0)
-        self.rtlsdr_source_0.set_iq_balance_mode(2, 0)
-        self.rtlsdr_source_0.set_gain_mode(True, 0)
-        self.rtlsdr_source_0.set_gain(rfgain, 0)
-        self.rtlsdr_source_0.set_if_gain(20, 0)
-        self.rtlsdr_source_0.set_bb_gain(20, 0)
-        self.rtlsdr_source_0.set_antenna('', 0)
-        self.rtlsdr_source_0.set_bandwidth(0, 0)
         self.qtgui_vector_sink_f_0 = qtgui.vector_sink_f(
             fft_size,
             0,
@@ -170,14 +155,16 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
         _prober_thread.start()
 
         self.fft_vxx_0 = fft.fft_vcc(fft_size, True, window.blackmanharris(fft_size), True, 1)
-        self.electrosense_variable_updater_0 = electrosense.variable_updater
+        self.electrosense_variable_updater_0 = electrosense.variable_updater()
         self.electrosense_variable_updater_0.register_instance(self)
         self.electrosense_mqtt_client_0 = electrosense.mqtt_client('127.0.0.1', 1883, 'electrosense', '', '', '')
         self.electrosense_discard_samples_0 = electrosense.discard_samples(int(tune_delay * samp_rate), int(cfreq), pmt.intern("burst_len"), False)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_gr_complex*1, samp_rate,True)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fft_size)
         self.blocks_nlog10_ff_0 = blocks.nlog10_ff(1, fft_size, 0)
         self.blocks_keep_one_in_n_0 = blocks.keep_one_in_n(gr.sizeof_float*fft_size, navg_vectors)
         self.blocks_complex_to_mag_squared_0 = blocks.complex_to_mag_squared(fft_size)
+        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_COS_WAVE, 1000, 1, 0, 0)
 
 
 
@@ -185,14 +172,15 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.msg_connect((self.electrosense_mqtt_client_0, 'out'), (self.electrosense_variable_updater_0, 'in'))
+        self.connect((self.analog_sig_source_x_0, 0), (self.blocks_throttle_0, 0))
         self.connect((self.blocks_complex_to_mag_squared_0, 0), (self.single_pole_iir_filter_xx_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.blocks_nlog10_ff_0, 0))
         self.connect((self.blocks_keep_one_in_n_0, 0), (self.vecprobe, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.qtgui_vector_sink_f_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.fft_vxx_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.electrosense_discard_samples_0, 0))
         self.connect((self.electrosense_discard_samples_0, 0), (self.blocks_stream_to_vector_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.electrosense_discard_samples_0, 0))
         self.connect((self.single_pole_iir_filter_xx_0, 0), (self.blocks_keep_one_in_n_0, 0))
 
 
@@ -221,8 +209,9 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_cfreq(scanning.step(self.start_f,self.end_f,self.samp_rate/1.5,self.prober,self.hop_mode,0.8,0.8))
+        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
+        self.blocks_throttle_0.set_sample_rate(self.samp_rate)
         self.electrosense_discard_samples_0.set_nsamples(int(self.tune_delay * self.samp_rate))
-        self.rtlsdr_source_0.set_sample_rate(self.samp_rate)
 
     def get_prober(self):
         return self.prober
@@ -256,14 +245,12 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
 
     def set_rfgain(self, rfgain):
         self.rfgain = rfgain
-        self.rtlsdr_source_0.set_gain(self.rfgain, 0)
 
     def get_ppm(self):
         return self.ppm
 
     def set_ppm(self, ppm):
         self.ppm = ppm
-        self.rtlsdr_source_0.set_freq_corr(self.ppm, 0)
 
     def get_navg_vectors(self):
         return self.navg_vectors
@@ -284,7 +271,6 @@ class electrosense_mqtt_test(gr.top_block, Qt.QWidget):
     def set_cfreq(self, cfreq):
         self.cfreq = cfreq
         self.electrosense_discard_samples_0.set_var(int(self.cfreq))
-        self.rtlsdr_source_0.set_center_freq(self.cfreq, 0)
 
     def get_alpha(self):
         return self.alpha

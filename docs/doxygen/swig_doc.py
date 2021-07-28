@@ -81,13 +81,15 @@ class Block2(object):
 
 def utoascii(text):
     """
-    Convert unicode text into ascii and escape quotes.
+    Convert unicode text into ascii and escape quotes and backslashes.
     """
     if text is None:
         return ''
     out = text.encode('ascii', 'replace')
-    out = out.replace('"', '\\"')
-    return out
+    # swig will require us to replace blackslash with 4 backslashes
+    out = out.replace(b'\\', b'\\\\\\\\')
+    out = out.replace(b'"', b'\\"').decode('ascii')
+    return str(out)
 
 
 def combine_descriptions(obj):
@@ -103,9 +105,15 @@ def combine_descriptions(obj):
         description.append(dd)
     return utoascii('\n\n'.join(description)).strip()
 
+def format_params(parameteritems):
+    output = ['Args:']
+    template = '    {0} : {1}'
+    for pi in parameteritems:
+        output.append(template.format(pi.name, pi.description))
+    return '\n'.join(output)
 
 entry_templ = '%feature("docstring") {name} "{docstring}"'
-def make_entry(obj, name=None, templ="{description}", description=None):
+def make_entry(obj, name=None, templ="{description}", description=None, params=[]):
     """
     Create a docstring entry for a swig interface file.
 
@@ -122,6 +130,9 @@ def make_entry(obj, name=None, templ="{description}", description=None):
         return ''
     if description is None:
         description = combine_descriptions(obj)
+    if params:
+        description += '\n\n'
+        description += utoascii(format_params(params))
     docstring = templ.format(description=description)
     if not docstring:
         return ''
@@ -199,7 +210,6 @@ def make_block_entry(di, block):
     # the make function.
     output = []
     output.append(make_class_entry(block, description=super_description))
-    creator = block.get_member(block.name(), DoxyFunction)
     output.append(make_func_entry(make_func, description=super_description,
                                   params=block.params))
     return "\n\n".join(output)

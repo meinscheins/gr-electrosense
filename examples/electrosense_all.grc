@@ -168,6 +168,28 @@ blocks:
     coordinate: [800, 20]
     rotation: 0
     state: enabled
+- name: analog_sig_source_x_0
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '1000'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: complex
+    waveform: analog.GR_COS_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [16, 316.0]
+    rotation: 0
+    state: true
 - name: blocks_complex_to_mag_squared_0
   id: blocks_complex_to_mag_squared
   parameters:
@@ -220,6 +242,25 @@ blocks:
     coordinate: [296, 324]
     rotation: 0
     state: enabled
+- name: blocks_throttle_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 244.0]
+    rotation: 0
+    state: true
 - name: electrosense_discard_samples_0
   id: electrosense_discard_samples
   parameters:
@@ -1135,6 +1176,7 @@ blocks:
     sd_spec6: ''
     sd_spec7: ''
     show_lo_controls: 'False'
+    start_time: '-1.0'
     stream_args: ''
     stream_chans: '[]'
     sync: sync
@@ -1153,7 +1195,7 @@ blocks:
     bus_structure: null
     coordinate: [23, 290]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: vecprobe
   id: blocks_probe_signal_vx
   parameters:
@@ -1171,10 +1213,12 @@ blocks:
     state: enabled
 
 connections:
+- [analog_sig_source_x_0, '0', blocks_throttle_0, '0']
 - [blocks_complex_to_mag_squared_0, '0', single_pole_iir_filter_xx_0, '0']
 - [blocks_keep_one_in_n_0, '0', electrosense_sensor_sink_0, '0']
 - [blocks_keep_one_in_n_0, '0', vecprobe, '0']
 - [blocks_stream_to_vector_0, '0', fft_vxx_0, '0']
+- [blocks_throttle_0, '0', electrosense_discard_samples_0, '0']
 - [electrosense_discard_samples_0, '0', blocks_stream_to_vector_0, '0']
 - [electrosense_mqtt_client_0, out, electrosense_variable_updater_0, in]
 - [fft_vxx_0, '0', blocks_complex_to_mag_squared_0, '0']

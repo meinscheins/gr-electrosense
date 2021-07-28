@@ -8,8 +8,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import sys
-import getopt
-from string import lower as str_lower
+
 from xml.dom import minidom
 from xml.dom import Node
 
@@ -525,4 +524,3 @@ if __name__ == '__main__':
     main()
     #import pdb
     #pdb.run('main()')
-

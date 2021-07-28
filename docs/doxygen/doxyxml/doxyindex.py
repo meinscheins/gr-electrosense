@@ -109,7 +109,6 @@ class DoxyCompound(DoxyCompMem):
 class DoxyMember(DoxyCompMem):
     pass
 
-
 class DoxyFunction(DoxyMember):
 
     __module__ = "gnuradio.utils.doxyxml"
@@ -303,4 +302,3 @@ class DoxyOther(Base):
         return obj.kind in cls.kinds
 
 Base.mem_classes.append(DoxyOther)
-
