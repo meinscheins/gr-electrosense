@@ -292,8 +292,8 @@ blocks:
     keyfile: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    port: '1883'
-    server: 127.0.0.1
+    port: '8883'
+    server: collector.electrosense.org
   states:
     bus_sink: false
     bus_source: false
@@ -318,7 +318,7 @@ blocks:
     gain: rfgain
     hopping: '0'
     keyfile: /home/rsreeraj/gnu_work/gr-electrosense/python/sensor_cert/Sensor-SSL-SK.pem
-    port: '5000'
+    port: '5001'
     senid: sensorid
     server: collector.electrosense.org
     veclen: fft_size
