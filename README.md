@@ -54,6 +54,9 @@ sudo make install
 
 ## Usage
 
+### New Port Numbers
+Electrosense now uses port 8883 for MQTT and port 5001 for the sensor sink. 
+
 ### Sample examples
 Check examples folder for detailed flowgraphs
 
