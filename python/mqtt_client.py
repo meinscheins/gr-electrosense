@@ -47,6 +47,7 @@ class mqtt_client(gr.basic_block):
 
     def connect(self):
         self.client = mqtt.Client()
+        self.client.username_pw_set("sensor", "sensor")
         self.client.on_connect = self.on_connect
         if self.ca_cert:
             self.client.tls_set(self.ca_cert, certfile=self.certfile, keyfile=self.keyfile)
