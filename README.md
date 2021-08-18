@@ -7,7 +7,8 @@ An OOT module for electrosense sensor node. This implementation allows any user 
 2. Apache Avro python bindings
 3. MQTT python bindings
 
-
+### New Port Numbers
+Electrosense now uses port 8883 for MQTT and port 5001 for the sensor sink. 
 ## Installation
 
 ### Basic installation
