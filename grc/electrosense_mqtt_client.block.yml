@@ -41,7 +41,7 @@ outputs:
 
 templates:
     imports: import electrosense
-    make: electrosense.mqtt_client(${server}, ${port}, ${channel}, ${ca_cert}, ${certfile},
-        ${keyfile}, ${senid}, ${avrofile-mqtt})
+    make: electrosense.mqtt_client(${server}, ${port}, ${channel}, ${senid}, ${avrofile-mqtt},
+        ${ca_cert}, ${certfile}, ${keyfile})
 
 file_format: 1
