@@ -21,6 +21,8 @@
 
 import numpy
 import pmt
+import avro.schema
+import avro.io
 from gnuradio import gr
 import paho.mqtt.client as mqtt
 
@@ -28,7 +30,7 @@ class mqtt_client(gr.basic_block):
     """
     docstring for block mqtt_client
     """
-    def __init__(self, server, port, channel, ca_cert=None, certfile=None, keyfile=None):
+    def __init__(self, server, port, channel, ca_cert=None, certfile=None, keyfile=None, senid, avrofile):
         gr.basic_block.__init__(self,
             name="mqtt_client",
             in_sig=[],
@@ -42,6 +44,8 @@ class mqtt_client(gr.basic_block):
         self.ca_cert = ca_cert
         self.certfile = certfile
         self.keyfile = keyfile
+        self.senid = senid
+        self.avrofile = avrofile
 
         self.connect()
 
@@ -57,7 +61,9 @@ class mqtt_client(gr.basic_block):
 
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
-        self.client.subscribe(self.channel+"/#")
+        topics = ["control/sensor/all", "control/sensor/id/" + self.senid]
+        print("Connected with sensor-id: ", self.senid)
+        self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
         data = msg.payload.split(",".encode())
