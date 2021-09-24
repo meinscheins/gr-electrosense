@@ -26,6 +26,10 @@ parameters:
 -   id: keyfile
     label: Private key(PEM)
     dtype: string
+-   id: avrofile-mqtt
+    label: Schema file
+    dtype: string
+    default: FullSchema.avsc
 
 outputs:
 -   domain: message
