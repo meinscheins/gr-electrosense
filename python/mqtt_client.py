@@ -40,7 +40,6 @@ class mqtt_client(gr.basic_block):
         self.message_port_register_out(pmt.intern('out'))
         self.server = server
         self.port   = port
-        self.channel = channel
         self.ca_cert = ca_cert
         self.certfile = certfile
         self.keyfile = keyfile
