@@ -53,19 +53,23 @@ class mqtt_client(gr.basic_block):
         self.client.username_pw_set("sensor", "sensor")
         self.client.on_connect = self.on_connect
         if self.ca_cert:
-            self.client.tls_set(self.ca_cert, certfile=self.certfile, keyfile=self.keyfile)
+            self.client.tls_set(self.ca_cert, certfile=self.certfile, keyfile=self.keyfile, tls_version=2)
         self.client.on_message = self.on_message
+
+        # INSECURE !!!
+        self.client.tls_insecure_set(True)
+        # INSECURE !!!
+        
         self.client.connect(self.server, self.port, 60)
         self.client.loop_start()
 
     def on_connect(self, client, userdata, flags, rc):
-        print("Connected with result code "+str(rc))
-        topics = ["control/sensor/all", "control/sensor/id/" + self.senid]
-        print("Connected with sensor-id: ", self.senid)
+        print("Connected with result code " + str(rc))
+        topics = [("control/sensor/all", 0), ("control/sensor/id/" + str(self.senid), 0)]
         self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
-        data = msg.payload.split(",".encode())
-        data[0]=data[0].decode('ascii')
-        data[1]=data[1].decode('ascii')
-        self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(data[0]), pmt.intern(data[1])))
+        print(msg.payload)
+        variable_name = ""
+        variable_content = ""
+        #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
