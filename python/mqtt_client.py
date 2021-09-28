@@ -30,7 +30,7 @@ class mqtt_client(gr.basic_block):
     """
     docstring for block mqtt_client
     """
-    def __init__(self, server, port, channel, senid, avrofile, ca_cert=None, certfile=None, keyfile=None):
+    def __init__(self, server, port, senid, avrofile, ca_cert=None, certfile=None, keyfile=None):
         gr.basic_block.__init__(self,
             name="mqtt_client",
             in_sig=[],

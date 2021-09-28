@@ -13,10 +13,6 @@ parameters:
     label: Port
     dtype: int
     default: '1883'
--   id: channel
-    label: Channel
-    dtype: string
-    default: electrosense
 -   id: ca_cert
     label: CA certificate
     dtype: string
@@ -41,7 +37,7 @@ outputs:
 
 templates:
     imports: import electrosense
-    make: electrosense.mqtt_client(${server}, ${port}, ${channel}, ${senid}, ${avrofile-mqtt},
+    make: electrosense.mqtt_client(${server}, ${port}, ${senid}, ${avrofile-mqtt},
         ${ca_cert}, ${certfile}, ${keyfile})
 
 file_format: 1
