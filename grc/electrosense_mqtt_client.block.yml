@@ -26,7 +26,7 @@ parameters:
     label: Sensor ID
     dtype: int
     default: '123456'
--   id: avrofile-mqtt
+-   id: avrofile
     label: Schema file
     dtype: string
     default: FullSchema.avsc
@@ -37,7 +37,7 @@ outputs:
 
 templates:
     imports: import electrosense
-    make: electrosense.mqtt_client(${server}, ${port}, ${senid}, ${avrofile-mqtt},
+    make: electrosense.mqtt_client(${server}, ${port}, ${senid}, ${avrofile},
         ${ca_cert}, ${certfile}, ${keyfile})
 
 file_format: 1
