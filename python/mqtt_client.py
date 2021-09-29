@@ -46,6 +46,9 @@ class mqtt_client(gr.basic_block):
         self.senid = senid
         self.avrofile = avrofile
 
+        self.schema = avro.schema.Parse(open(avrofile).read())
+        self.reader = DatumReader(schema)
+
         self.connect()
 
     def connect(self):
@@ -69,7 +72,13 @@ class mqtt_client(gr.basic_block):
         self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
-        print(msg.payload)
+        print(decode_message(msg.payload))
         variable_name = ""
         variable_content = ""
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
+
+    def decode_message(self, message):
+        message_bytes = io.BytesIO(message)
+        decoder = BinaryDecoder(message_bytes)
+        event_dict = reader.read(decoder)
+        return event_dict
