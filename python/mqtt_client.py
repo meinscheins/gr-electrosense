@@ -79,7 +79,7 @@ class mqtt_client(gr.basic_block):
 
         # Type = StatusRequest
         if decoded_message["Type"] == "StatusRequest":
-            self._handle_status_request(self, decode_message["Message"])
+            self._handle_status_request(self, decoded_message["Message"])
 
 
         # Connector to GNURadio
