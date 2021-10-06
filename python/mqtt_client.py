@@ -23,8 +23,9 @@ import numpy
 import pmt
 import avro.schema
 import avro.io
-from gnuradio import gr
+import io
 import paho.mqtt.client as mqtt
+from gnuradio import gr
 
 class mqtt_client(gr.basic_block):
     """
@@ -47,7 +48,7 @@ class mqtt_client(gr.basic_block):
         self.avrofile = avrofile
 
         self.schema = avro.schema.Parse(open(avrofile).read())
-        self.reader = DatumReader(schema)
+        self.reader = avro.io.DatumReader(self.schema)
 
         self.connect()
 
@@ -59,10 +60,6 @@ class mqtt_client(gr.basic_block):
             self.client.tls_set(self.ca_cert, certfile=self.certfile, keyfile=self.keyfile, tls_version=2)
         self.client.on_message = self.on_message
 
-        # INSECURE !!!
-        self.client.tls_insecure_set(True)
-        # INSECURE !!!
-        
         self.client.connect(self.server, self.port, 60)
         self.client.loop_start()
 
@@ -72,13 +69,13 @@ class mqtt_client(gr.basic_block):
         self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
-        print(decode_message(msg.payload))
+        print(self.decode_message(msg.payload))
         variable_name = ""
         variable_content = ""
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
 
     def decode_message(self, message):
         message_bytes = io.BytesIO(message)
-        decoder = BinaryDecoder(message_bytes)
-        event_dict = reader.read(decoder)
+        decoder = avro.io.BinaryDecoder(message_bytes)
+        event_dict = self.reader.read(decoder)
         return event_dict
