@@ -52,6 +52,12 @@ class mqtt_client(gr.basic_block):
 
         self.connect()
 
+    def _handle_status_request(self, msg):
+        # type = SENSORSTATUS
+        if msg["Type"] == "SENSORSTATUS":
+            print("GOT STATUS REQUEST")
+            
+
     def connect(self):
         self.client = mqtt.Client()
         self.client.username_pw_set("sensor", "sensor")
@@ -69,7 +75,14 @@ class mqtt_client(gr.basic_block):
         self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
-        print(self.decode_message(msg.payload))
+        decoded_message = self.decode_message(msg.payload)
+
+        # Type = StatusRequest
+        if decoded_message["Type"] == "StatusRequest":
+            self._handle_status_request(self, decode_message["Message"])
+
+
+        # Connector to GNURadio
         variable_name = ""
         variable_content = ""
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
