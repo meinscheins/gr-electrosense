@@ -99,7 +99,7 @@ class mqtt_client(gr.basic_block):
 
     def send_message(self, msg_type, data, topic):
         print(data)
-        msg = self.parser.encode_message(msg_type, data)
+        msg = self.encode_message(msg_type, data)
         print(msg)
         #self.client.publish(topic, msg, 0)
 
