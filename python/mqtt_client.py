@@ -121,5 +121,5 @@ class mqtt_client(gr.basic_block):
         buf.close()
         return msg
 
-    def current_timestamp():
+    def current_timestamp(self):
         return int(time.mktime(datetime.datetime.now().timetuple()))
