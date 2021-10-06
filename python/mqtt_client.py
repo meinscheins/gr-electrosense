@@ -60,7 +60,7 @@ class mqtt_client(gr.basic_block):
     def _handle_status_request(self, msg):
         # type = SENSORSTATUS
         if msg["Type"] == "SENSORSTATUS":
-            msg = {"SerialNumber": self.serial_number,
+            msg = {"SerialNumber": self.senid,
                 "Timestamp": current_timestamp(),
                "Uptime": int(time.mktime(datetime.datetime.now().timetuple()) - psutil.boot_time()),
                "Status": self.status,
