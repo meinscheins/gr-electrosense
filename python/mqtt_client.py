@@ -114,8 +114,8 @@ class mqtt_client(gr.basic_block):
         Encapsulation ensures that the decoder can infer the schema based on the `type` field
         """
         buf = io.BytesIO()
-        encoder = BinaryEncoder(buf)
-        writer = DatumWriter(self.schema)
+        encoder = avro.io.BinaryEncoder(buf)
+        writer = avro.io.DatumWriter(self.schema)
         writer.write({"Type": message_type, "Message": data}, encoder)
         msg = bytearray(buf.getvalue())
         buf.close()
