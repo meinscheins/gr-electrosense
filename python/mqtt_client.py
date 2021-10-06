@@ -19,6 +19,9 @@
 # Boston, MA 02110-1301, USA.
 #
 
+import datetime
+import time
+import psutil
 import numpy
 import pmt
 import avro.schema
@@ -46,6 +49,8 @@ class mqtt_client(gr.basic_block):
         self.keyfile = keyfile
         self.senid = senid
         self.avrofile = avrofile
+        self.status = "IDLE"
+        self.status_info = {}
 
         self.schema = avro.schema.Parse(open(avrofile).read())
         self.reader = avro.io.DatumReader(self.schema)
@@ -55,7 +60,12 @@ class mqtt_client(gr.basic_block):
     def _handle_status_request(self, msg):
         # type = SENSORSTATUS
         if msg["Type"] == "SENSORSTATUS":
-            print("GOT STATUS REQUEST")
+            msg = {"SerialNumber": self.serial_number,
+                "Timestamp": current_timestamp(),
+               "Uptime": int(time.mktime(datetime.datetime.now().timetuple()) - psutil.boot_time()),
+               "Status": self.status,
+               "StatusInfo": self.status_info}
+            self.send_message("SensorStatus", msg, "sensor/status/{}".format(self.senid))
             
 
     def connect(self):
@@ -87,8 +97,29 @@ class mqtt_client(gr.basic_block):
         variable_content = ""
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
 
+    def send_message(self, msg_type, data, topic):
+        print(data)
+        msg = self.parser.encode_message(msg_type, data)
+        print(msg)
+        #self.client.publish(topic, msg, 0)
+
     def decode_message(self, message):
         message_bytes = io.BytesIO(message)
         decoder = avro.io.BinaryDecoder(message_bytes)
         event_dict = self.reader.read(decoder)
         return event_dict
+
+    def encode_message(self, message_type, data):
+        """Create an Avro record with fields type = messageType and message = data
+        Encapsulation ensures that the decoder can infer the schema based on the `type` field
+        """
+        buf = io.BytesIO()
+        encoder = BinaryEncoder(buf)
+        writer = DatumWriter(self.schema)
+        writer.write({"Type": message_type, "Message": data}, encoder)
+        msg = bytearray(buf.getvalue())
+        buf.close()
+        return msg
+
+    def current_timestamp():
+        return int(time.mktime(datetime.datetime.now().timetuple()))
