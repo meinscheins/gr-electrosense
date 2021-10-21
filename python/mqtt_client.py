@@ -19,16 +19,11 @@
 # Boston, MA 02110-1301, USA.
 #
 
-import datetime
-import time
-import psutil
-import numpy
 import pmt
-import avro.schema
-import avro.io
-import io
 import paho.mqtt.client as mqtt
 from gnuradio import gr
+from avro_parser import avro_parser
+from server_manager import server_manager
 
 class mqtt_client(gr.basic_block):
     """
@@ -49,24 +44,11 @@ class mqtt_client(gr.basic_block):
         self.keyfile = keyfile
         self.senid = senid
         self.avrofile = avrofile
-        self.status = "IDLE"
-        self.status_info = {}
+        
+        self.server_manager = server_manager()
+        self.avro_parser = avro_parser(avrofile)
 
-        self.schema = avro.schema.Parse(open(avrofile).read())
-        self.reader = avro.io.DatumReader(self.schema)
-
-        self.connect()
-
-    def _handle_status_request(self, msg):
-        # type = SENSORSTATUS
-        if msg["Type"] == "SENSORSTATUS":
-            msg = {"SerialNumber": self.senid,
-                "Timestamp": self.current_timestamp(),
-               "Uptime": int(time.mktime(datetime.datetime.now().timetuple()) - psutil.boot_time()),
-               "Status": self.status,
-               "StatusInfo": self.status_info}
-            self.send_message("SensorStatus", msg, "sensor/status/{}".format(self.senid))
-            
+        self.connect()            
 
     def connect(self):
         self.client = mqtt.Client()
@@ -85,11 +67,11 @@ class mqtt_client(gr.basic_block):
         self.client.subscribe(topics)
 
     def on_message(self, client, userdata, msg):
-        decoded_message = self.decode_message(msg.payload)
+        decoded_message = self.avro_parser.decode_message(msg.payload)
 
         # Type = StatusRequest
         if decoded_message["Type"] == "StatusRequest":
-            self._handle_status_request(decoded_message["Message"])
+            self.server_manager.handle_status_request(decoded_message["Message"])
 
 
         # Connector to GNURadio
@@ -98,28 +80,5 @@ class mqtt_client(gr.basic_block):
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
 
     def send_message(self, msg_type, data, topic):
-        print(data)
-        msg = self.encode_message(msg_type, data)
-        print(msg)
-        #self.client.publish(topic, msg, 0)
-
-    def decode_message(self, message):
-        message_bytes = io.BytesIO(message)
-        decoder = avro.io.BinaryDecoder(message_bytes)
-        event_dict = self.reader.read(decoder)
-        return event_dict
-
-    def encode_message(self, message_type, data):
-        """Create an Avro record with fields type = messageType and message = data
-        Encapsulation ensures that the decoder can infer the schema based on the `type` field
-        """
-        buf = io.BytesIO()
-        encoder = avro.io.BinaryEncoder(buf)
-        writer = avro.io.DatumWriter(self.schema)
-        writer.write({"Type": message_type, "Message": data}, encoder)
-        msg = bytearray(buf.getvalue())
-        buf.close()
-        return msg
-
-    def current_timestamp(self):
-        return int(time.mktime(datetime.datetime.now().timetuple()))
+        msg = self.avro_parser.encode_message(msg_type, data)
+        self.client.publish(topic, msg, 0)

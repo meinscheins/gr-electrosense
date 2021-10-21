@@ -10,12 +10,18 @@ An OOT module for electrosense sensor node. This implementation allows any user 
 ## New Port Numbers
 Electrosense now uses port 8883 for MQTT and port 5001 for the sensor sink. 
 
-## Installation
+## Installation`
 
-### Basic installation
+#### Dependencies
 
 ```
-mkdir build ; cd build
+sudo apt install cmake libgmp-dev swig
+```
+
+#### Basic installation
+
+```
+mkdir build; cd build
 cmake ../
 make
 sudo make install
