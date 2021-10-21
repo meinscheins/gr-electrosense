@@ -15,8 +15,8 @@ class avro_parser:
         self.avrofile = avrofile
 
         self.schema = avro.schema.Parse(open(avrofile).read())
-        self.reader = avro.io.DatumReader(schema)
-        self.writer = avro.io.DatumWriter(schema)
+        self.reader = avro.io.DatumReader(self.schema)
+        self.writer = avro.io.DatumWriter(self.schema)
 
     def decode_message(self, message):
         message_bytes = io.BytesIO(message)
