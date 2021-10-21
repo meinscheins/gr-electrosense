@@ -23,7 +23,7 @@ import pmt
 import paho.mqtt.client as mqtt
 from gnuradio import gr
 from electrosense.avro_parser import avro_parser
-from electrosense.sensor_manager import sensor_manager
+from electrosense.message_handler import message_handler
 
 class mqtt_client(gr.basic_block):
     """
@@ -45,7 +45,7 @@ class mqtt_client(gr.basic_block):
         self.senid = senid
         self.avrofile = avrofile
         
-        self.sensor_manager = sensor_manager()
+        self.message_handler = message_handler()
         self.avro_parser = avro_parser(avrofile)
 
         self.connect()            
@@ -71,7 +71,7 @@ class mqtt_client(gr.basic_block):
 
         # Type = StatusRequest
         if decoded_message["Type"] == "StatusRequest":
-            self.sensor_manager.handle_status_request(decoded_message["Message"])
+            self.message_handler.handle_status_request(decoded_message["Message"])
 
 
         # Connector to GNURadio

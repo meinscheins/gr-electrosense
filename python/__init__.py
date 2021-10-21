@@ -36,6 +36,6 @@ from .sensor_sink import sensor_sink
 from .mqtt_client import mqtt_client
 from .variable_updater import variable_updater
 from .avro_parser import avro_parser
-from .sensor_manager import sensor_manager
+from .message_handler import message_handler
 
 #

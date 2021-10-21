@@ -6,12 +6,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-class sensor_manager:
+class message_handler:
     def __init__(self):
         self.status = "IDLE"
         self.status_info = {}
 
-    def _handle_status_request(self, msg):
+    def handle_status_request(self, msg):
         # type = SENSORSTATUS
         if msg["Type"] == "SENSORSTATUS":
             msg = {"SerialNumber": self.senid,

@@ -36,7 +36,7 @@ GR_PYTHON_INSTALL(
     mqtt_client.py
     variable_updater.py
     avro_parser.py
-    sensor_manager.py DESTINATION ${GR_PYTHON_DIR}/electrosense
+    message_handler.py DESTINATION ${GR_PYTHON_DIR}/electrosense
 )
 
 ########################################################################
