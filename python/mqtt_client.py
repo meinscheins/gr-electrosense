@@ -45,7 +45,7 @@ class mqtt_client(gr.basic_block):
         self.senid = senid
         self.avrofile = avrofile
         
-        self.server_manager = server_manager()
+        self.sensor_manager = sensor_manager()
         self.avro_parser = avro_parser(avrofile)
 
         self.connect()            
@@ -71,7 +71,7 @@ class mqtt_client(gr.basic_block):
 
         # Type = StatusRequest
         if decoded_message["Type"] == "StatusRequest":
-            self.server_manager.handle_status_request(decoded_message["Message"])
+            self.sensor_manager.handle_status_request(decoded_message["Message"])
 
 
         # Connector to GNURadio
