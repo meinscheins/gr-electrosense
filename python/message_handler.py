@@ -7,7 +7,9 @@
 #
 
 class message_handler:
-    def __init__(self):
+    def __init__(self, send_message_function, senid):
+        self.send_message = send_message_function
+        self.senid = senid
         self.status = "IDLE"
         self.status_info = {}
 

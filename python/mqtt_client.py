@@ -45,7 +45,7 @@ class mqtt_client(gr.basic_block):
         self.senid = senid
         self.avrofile = avrofile
         
-        self.message_handler = message_handler()
+        self.message_handler = message_handler(send_message, senid)
         self.avro_parser = avro_parser(avrofile)
 
         self.connect()            
