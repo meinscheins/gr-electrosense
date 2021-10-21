@@ -19,11 +19,11 @@
 # Boston, MA 02110-1301, USA.
 #
 
+import avro_parser
+import sensor_manager
 import pmt
 import paho.mqtt.client as mqtt
 from gnuradio import gr
-from avro_parser import avro_parser
-from server_manager import server_manager
 
 class mqtt_client(gr.basic_block):
     """
@@ -80,5 +80,7 @@ class mqtt_client(gr.basic_block):
         #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
 
     def send_message(self, msg_type, data, topic):
+        print(data)
         msg = self.avro_parser.encode_message(msg_type, data)
-        self.client.publish(topic, msg, 0)
+        print(msg)
+        #self.client.publish(topic, msg, 0)
