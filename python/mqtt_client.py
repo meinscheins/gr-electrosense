@@ -19,10 +19,10 @@
 # Boston, MA 02110-1301, USA.
 #
 
-import avro_parser
-import sensor_manager
 import pmt
 import paho.mqtt.client as mqtt
+import electrosense.avro_parser as avro_parser
+import electrosense.sensor_manager as sensor_manager
 from gnuradio import gr
 
 class mqtt_client(gr.basic_block):
