@@ -21,9 +21,9 @@
 
 import pmt
 import paho.mqtt.client as mqtt
-import electrosense.avro_parser as avro_parser
-import electrosense.sensor_manager as sensor_manager
 from gnuradio import gr
+from electrosense.avro_parser import avro_parser
+from electrosense.sensor_manager import sensor_manager
 
 class mqtt_client(gr.basic_block):
     """
