@@ -29,7 +29,7 @@ class avro_parser:
         buf = io.BytesIO()
         encoder = avro.io.BinaryEncoder(buf)
         self.writer.write({"Type": message_type, "Message": data}, encoder)
-        msg = bytearray(buf.getvalue())
+        encoded_message = bytearray(buf.getvalue())
         buf.close()
 
         return encoded_message
