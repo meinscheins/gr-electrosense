@@ -83,4 +83,4 @@ class mqtt_client(gr.basic_block):
         print(data)
         msg = self.avro_parser.encode_message(msg_type, data)
         print(msg)
-        #self.client.publish(topic, msg, 0)
+        self.client.publish(topic, msg, 0)
