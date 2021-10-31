@@ -46,7 +46,6 @@ class variable_updater(gr.basic_block):
                          "log2FFTsize": lambda x: self.lserv.set_fft_size(int(2 ** x)),
                          # freqOverlap
                          "hoppingStrategy": lambda x: self.lserv.set_hop_mode(int(get_hop_mode_id(x))),
-                         # avgFactor
                          "avgFactor": lambda x: self.lserv.set_alpha(int(3/x)),
                          # minTimeRes
                          # window
@@ -55,7 +54,7 @@ class variable_updater(gr.basic_block):
                          # soverlap
                          "sampRate": lambda x: self.lserv.set_samp_rate(int(x)),
                          # monitorTime
-                         "gain": lambda x: self.lserv.set_rfgain(float(x))
+                         "gain": lambda x: self.lserv.set_rfgain(float(x)); print(x)
                         }
 
     def register_instance(self, tb):
@@ -65,8 +64,6 @@ class variable_updater(gr.basic_block):
         msg = pmt.to_python(msg_pmt)
         if msg[0] in self.commdict:
             try:
-                print(msg[0])
-                print(msg[1])
                 self.commdict[msg[0]](msg[1])
                 print("Updating: ", msg)
             except:
