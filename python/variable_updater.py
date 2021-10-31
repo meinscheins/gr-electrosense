@@ -75,10 +75,9 @@ class variable_updater(gr.basic_block):
                 print("Updating failed: ", msg)
 
     def get_hop_mode_id(self, hopping_strategy):
-        match hopping_strategy:
-            case "sequential":
-                return 0
-            case "random":
-                return 1
-            default:        
-                return 0
+        if hopping_strategy == "sequential":
+            return 0
+        elif hopping_strategy == "random":
+            return 1
+        else:        
+            return -1
