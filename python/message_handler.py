@@ -37,6 +37,7 @@ class message_handler:
             print(params)
             for parameter in params:
                 print(parameter)
+                print(params[parameter])
         elif msg["Command"] == "STOP":
             self.status = "IDLE"
 
