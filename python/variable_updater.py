@@ -54,7 +54,7 @@ class variable_updater(gr.basic_block):
                          # soverlap
                          "sampRate": lambda x: self.lserv.set_samp_rate(int(x)),
                          # monitorTime
-                         "gain": lambda x: self.lserv.set_rfgain(float(x)); print(x)
+                         "gain": lambda x: (self.lserv.set_rfgain(float(x)), print(x))
                         }
 
     def register_instance(self, tb):
