@@ -62,13 +62,11 @@ class variable_updater(gr.basic_block):
         self.lserv = tb
 
     def handle_msg(self, msg_pmt):
-        msg = pmt.write_string(msg_pmt)
-        msg = msg.replace('(','')
-        msg = msg.replace(')','')
-        msg = msg.split('.', 1)
-        msg[0] = msg[0].strip()
+        msg = pmt.to_python(msg_pmt)
         if msg[0] in self.commdict:
             try:
+                print(msg[0])
+                print(msg[1])
                 self.commdict[msg[0]](msg[1])
                 print("Updating: ", msg)
             except:
