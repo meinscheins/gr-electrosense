@@ -41,11 +41,11 @@ class variable_updater(gr.basic_block):
                          "tune_delay": lambda x: self.lserv.set_tune_delay(float(x)),
                          # edited from here
                          # clkOffset
-                         "minfreq": lambda x: self.lserv.set_start_f(x),
-                         "maxfreq": lambda x: self.lserv.set_end_f(x),
+                         "minfreq": lambda x: self.lserv.set_start_f(int(x)),
+                         "maxfreq": lambda x: self.lserv.set_end_f(int(x)),
                          "log2FFTsize": lambda x: self.lserv.set_fft_size(int(2 ** x)),
                          # freqOverlap
-                         "hoppingStrategy": lambda x: self.lserv.set_hop_mode(float(get_hop_mode_id(x))),
+                         "hoppingStrategy": lambda x: self.lserv.set_hop_mode(int(get_hop_mode_id(x))),
                          # avgFactor
                          "avgFactor": lambda x: self.lserv.set_alpha(int(3/x)),
                          # minTimeRes
@@ -53,7 +53,7 @@ class variable_updater(gr.basic_block):
                          # clkCorrPeriod
                          # fftBatchLen
                          # soverlap
-                         "sampRate": lambda x: self.lserv.set_samp_rate(float(x)),
+                         "sampRate": lambda x: self.lserv.set_samp_rate(int(x)),
                          # monitorTime
                          "gain": lambda x: self.lserv.set_rfgain(float(x))
                         }
