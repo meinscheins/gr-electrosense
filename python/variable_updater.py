@@ -43,7 +43,7 @@ class variable_updater(gr.basic_block):
                          # clkOffset
                          "minfreq": lambda x: self.lserv.set_start_f(x),
                          "maxfreq": lambda x: self.lserv.set_end_f(x),
-                         "log2FFTsize": lambda x: self.lserv.set_fft_size(float(2 ** x)),
+                         "log2FFTsize": lambda x: self.lserv.set_fft_size(int(2 ** x)),
                          # freqOverlap
                          "hoppingStrategy": lambda x: self.lserv.set_hop_mode(float(get_hop_mode_id(x))),
                          # avgFactor
