@@ -34,10 +34,8 @@ class message_handler:
             self.status = "BUSY"
             params = msg["SensingParams"]
             # updating parameter
-            print(params)
             for parameter in params:
-                print(parameter)
-                print(params[parameter])
+                self.update_variable(parameter, params[parameter])
         elif msg["Command"] == "STOP":
             self.status = "IDLE"
 
