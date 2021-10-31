@@ -47,6 +47,7 @@ class variable_updater(gr.basic_block):
                          # freqOverlap
                          "hoppingStrategy": lambda x: self.lserv.set_hop_mode(float(get_hop_mode_id(x))),
                          # avgFactor
+                         "avgFactor": lambda x: self.lserv.set_alpha(int(3/x)),
                          # minTimeRes
                          # window
                          # clkCorrPeriod

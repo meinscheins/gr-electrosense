@@ -31,7 +31,13 @@ class message_handler:
     def handle_measurement_command(self, msg):
         # type = SENSORSTATUS
         if msg["Command"] == "START":
+            self.status = "BUSY"
             params = msg["SensingParams"]
+            # updating parameter
+            print(params)
+        elif msg["Command"] == "STOP":
+            self.status = "IDLE"
+
 
     def current_timestamp(self):
         return int(time.mktime(datetime.datetime.now().timetuple()))
