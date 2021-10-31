@@ -45,7 +45,7 @@ class mqtt_client(gr.basic_block):
         self.senid = senid
         self.avrofile = avrofile
         
-        self.message_handler = message_handler(self.send_message, senid)
+        self.message_handler = message_handler(self.send_message, self.update_variable, senid)
         self.avro_parser = avro_parser(avrofile)
 
         self.connect()            
@@ -72,18 +72,18 @@ class mqtt_client(gr.basic_block):
         # Type = StatusRequest
         if decoded_message["Type"] == "StatusRequest":
             self.message_handler.handle_status_request(decoded_message["Message"])
+        elif decoded_message["Type"] == "MeasurementCommand":
+            self.message_handler.handle_measurement_command(decoded_message["Message"])
         else:
             print("Interpretation error")
             print(decoded_message)
-
-
-        # Connector to GNURadio
-        variable_name = ""
-        variable_content = ""
-        #self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))
 
     def send_message(self, msg_type, data, topic):
         print(data)
         msg = self.avro_parser.encode_message(msg_type, data)
         print(msg)
         self.client.publish(topic, msg, 0)
+
+    def update_variable(self, variable_name, variable_content):
+        # Connector to GNURadio Flow
+        self.message_port_pub(pmt.intern('out'), pmt.cons(pmt.intern(variable_name), pmt.intern(variable_content)))

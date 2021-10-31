@@ -38,11 +38,26 @@ class variable_updater(gr.basic_block):
         self.commdict = {"freq": lambda x: self.lserv.set_cfreq(float(x)),
                          "alpha": lambda x: self.lserv.set_alpha(float(x)),
                          "ppm": lambda x: self.lserv.set_ppm(float(x)),
-                         "rfgain": lambda x: self.lserv.set_rfgain(int(x)),
                          "tune_delay": lambda x: self.lserv.set_tune_delay(float(x)),
+                         # edited from here
+                         # clkOffset
+                         "minfreq": lambda x: self.lserv.set_start_f(float(x)),
+                         "maxfreq": lambda x: self.lserv.set_end_f(float(x)),
+                         "log2FFTsize": lambda x: self.lserv.set_fft_size(float(2 ** x)),
+                         # freqOverlap
+                         "hoppingStrategy": lambda x: self.lserv.set_hop_mode(float(get_hop_mode_id(x))),
+                         # avgFactor
+                         # minTimeRes
+                         # window
+                         # clkCorrPeriod
+                         # fftBatchLen
+                         # soverlap
+                         "sampRate": lambda x: self.lserv.set_samp_rate(float(x)),
+                         # monitorTime
+                         "gain": lambda x: self.lserv.set_rfgain(float(x))
                         }
 
-    def register_instance(self,tb):
+    def register_instance(self, tb):
         self.lserv = tb
 
     def handle_msg(self, msg_pmt):
@@ -57,3 +72,12 @@ class variable_updater(gr.basic_block):
                 print("Updating: ", msg)
             except:
                 print("Updating failed: ", msg)
+
+    def get_hop_mode_id(self, hopping_strategy):
+        match hopping_strategy:
+            case "sequential":
+                return 0
+            case "random":
+                return 1
+            default:        
+                return 0
