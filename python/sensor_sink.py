@@ -61,8 +61,9 @@ class sensor_sink(gr.sync_block):
         self.certpath=certfile
         self.keypath=keyfile
 
+        self.schema = avro.schema.Parse(open(avrofile).read())
+
         self.server_connect()
-        self.init_packetizer()
 
 
     def set_hopping(self, hopping):
@@ -107,9 +108,6 @@ class sensor_sink(gr.sync_block):
             self.sock = self.wrapped_socket
         except Exception as e:
             print("In server %s:%d. Exception is %s" % (self.server, self.port, e))
-
-    def init_packetizer(self):
-        self.schema = avro.schema.parse(open(self.avrofile).read())
 
     def packetize(self, data):
         self.bytes_writer = io.BytesIO()
